@@ -12,7 +12,7 @@ return apply_filters( 'ninja_forms_create_invoice_settings', array(
 	'si_generation' => array(
 		'name'          => 'si_generation',
 		'type'          => 'select',
-		'label'         => __( 'Role', 'sprout-invoices' ),
+		'label'         => __( 'Estimate or Invoice', 'sprout-invoices' ),
 		'width'         => 'full',
 		'value'         => 'estimate',
 		'group'         => 'primary',
@@ -220,7 +220,9 @@ return apply_filters( 'ninja_forms_create_invoice_settings', array(
 		'width'         => 'full',
 		'group'         => 'primary',
 		'field_types'   => array(
-			'listmultiselect'
+			'listmultiselect',
+			'listcheckbox',
+			'listradio',
 		),
 	),
 

@@ -32,14 +32,14 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 
 		parent::__construct();
 
-		$this->_nicename = __( 'Create Invoice', 'ninja-forms-sprout-invoices' );
+		$this->_nicename = __( 'Create Estimate or Invoice', 'ninja-forms-sprout-invoices' );
 
 		add_action( 'admin_init', array( $this, 'init_settings' ) );
 
 		add_action( 'ninja_forms_builder_templates', array( $this, 'builder_templates' ) );
 
 		// Halts form rendering and shows logout message.
-		add_filter( 'ninja_forms_display_show_form', array( $this, 'logout_message' ), 10, 3 );
+		// add_filter( 'ninja_forms_display_show_form', array( $this, 'add_doc_information' ), 10, 3 );
 	}
 
 
@@ -49,8 +49,6 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 	*/
 
 	/**
-	 * Logout Message
-	 *
 	 * Callback method for the ninja_forms_display_show_form filter.
 	 *
 	 * @param $boolean
@@ -58,7 +56,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 	 * @param $form
 	 * @return bool
 	 */
-	public function logout_message( $boolean, $form_id, $form ) {
+	public function add_doc_information( $boolean, $form_id, $form ) {
 
 		//Checks if filter has been set false anywhere else.
 		if ( ! $boolean ) { return false; }
@@ -68,14 +66,9 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		foreach ( $actions as $action ) {
 
 			//Checks if user is logged in and if create-invoice action exists.
-			if ( is_user_logged_in() && 'create-invoice' == $action->get_setting( 'type' )
+			if ( 'create-invoice' == $action->get_setting( 'type' )
 				 && ! $_GET['nf_preview_form'] ) {
 
-				//Echoes a logout link to the page.
-				echo '<a href="' . wp_logout_url( get_permalink() ) . '">' .
-					__( 'Please logout to view this form.', 'ninja-forms-sprout-invoices' ) .
-					'</a>';
-				return false;
 			}
 		}
 		return true;
@@ -134,12 +127,16 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 	 */
 	public function process( $action_settings, $form_id, $data ) {
 
+		do_action( 'si_log', __CLASS__ . '::' . __FUNCTION__ . ' - action_settings', $action_settings, false );
 
+		//Get the login action settings for the current form.
+		$action = Ninja_Forms()->form( $form_id )->get_action( $action_settings['id'] );
+		//Get the username and password settings.
+		$setting_key = NF_SproutInvoices()->strip_merge_tags( $action->get_settings( 'address', 'line_items' ) );
 		//Get the fields for the current form.
 		$fields = Ninja_Forms()->form( $form_id )->get_fields();
-		error_log( 'fields: ' . print_r( $fields, TRUE ) );
-
-		do_action( 'si_log', __CLASS__ . '::' . __FUNCTION__ . ' - action_settings', $action_settings, false );
+		//Gets a key/value pair in the form of action_setting => field_id
+		$field_id = NF_SproutInvoices()->get_field_id( $fields, $setting_key );
 
 		$generate  = $action_settings['si_generation'];
 		$product_type  = $action_settings['product_type'];
@@ -149,39 +146,31 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		//Setting up array to send user info to WordPress
 		$submission = array(
 			'subject'    	=> isset( $action_settings['subject'] ) ? $action_settings['subject'] : '',
-			'client_name'   => $action_settings['client_name'],
-			'email'    		=> $action_settings['email'],
-			'first_name'    => $action_settings['first_name'],
-			'last_name'     => $action_settings['last_name'],
-			'notes'         => $action_settings['notes'],
-			'duedate'	    => strtotime( $action_settings['duedate'] ),
-			'number'     	=> $action_settings['number'],
-			'vat'     		=> $action_settings['vat'],
-			'edit_url' 		=> sprintf( 
-									'<a href="%s">#%s</a>', 
-									add_query_arg( 
-										array( 
-											'id' => $entry['form_id'],
-											'lid' => $entry['id'] ),
-										admin_url( sprintf( '/wp-admin/edit.php?post_status=all&post_type=nf_sub&form_id=13&filter_action=Filter&paged=1', $entry['id'] ) ) ), 
-									$entry['id']
-								)
+			'client_name'   => isset( $action_settings['client_name'] ) ? $action_settings['client_name'] : '',
+			'email'    		=> isset( $action_settings['email'] ) ? $action_settings['email'] : '',
+			'first_name'    => isset( $action_settings['first_name'] ) ? $action_settings['first_name'] : '',
+			'last_name'     => isset( $action_settings['last_name'] ) ? $action_settings['last_name'] : '',
+			'notes'         => isset( $action_settings['notes'] ) ? $action_settings['notes'] : '',
+			'duedate'	    => isset( $action_settings['duedate'] ) ? strtotime( $action_settings['duedate'] ) : '',
+			'number'     	=> isset( $action_settings['number'] ) ? $action_settings['number'] : '',
+			'vat'     		=> isset( $action_settings['vat'] ) ? $action_settings['vat'] : '',
+			'edit_url' 		=> admin_url( sprintf( 'wp-admin/edit.php?post_status=all&post_type=nf_sub&form_id=%s&filter_action=Filter&paged=1', $form_id ) ),
 		);
 
 		if ( isset( $action_settings['address'] ) ) {
 			$submission['full_address'] = array();
 		}
 
-		$line_items = array();
-		if ( isset( $action_settings['line_items'] ) ) {
-			$line_items = explode( ',', $action_settings['line_items'] );
-			if ( is_array( $line_items ) ) {
-				foreach ( $line_items as $line_item ) {
+		$data_line_items = $data['fields'][ $field_id['line_items'] ];
+		if ( ! empty( $data_line_items['value'] ) ) {
+			$line_items = array();
+			foreach ( $data_line_items['options'] as $key => $option ) {
+				if ( in_array( $option['value'], $data_line_items['value'] ) ) {
 					$line_items[] = array(
 						'type' => $product_type,
-						'desc' => $line_item,
-						'rate' => 1,
-						'total' => 1,
+						'desc' => $option['label'],
+						'rate' => $option['calc'],
+						'total' => $option['calc'],
 						'qty' => 1,
 						'tax' => apply_filters( 'si_form_submission_line_item_default_tax', 0.00 ),
 					);
@@ -190,17 +179,18 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		}
 		$submission['line_items'] = $line_items;
 
+		$doc_id = 0;
 		switch ( $generate ) {
 			case 'invoice':
-				$invoice_id = $this->create_invoice( $submission, $action_settings );
+				$doc_id = $this->create_invoice( $submission, $action_settings );
 				if ( $create_user_and_client ) {
-					$this->create_client( $submission, $action_settings, $invoice_id );
+					$this->create_client( $submission, $action_settings, $doc_id );
 				}
 				break;
 			case 'estimate':
-				$estimate_id = $this->create_estimate( $submission, $action_settings );
+				$doc_id = $this->create_estimate( $submission, $action_settings );
 				if ( $create_user_and_client ) {
-					$this->create_client( $submission, $action_settings, $estimate_id );
+					$this->create_client( $submission, $action_settings, $doc_id );
 				}
 				break;
 			case 'client':
@@ -220,17 +210,16 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		}
 
 		// posible redirection
-		$url = wp_get_referer();
-		if ( $redirect && ( isset( $invoice_id ) || isset( $estimate_id ) ) ) {
-			if ( get_post_type( $invoice_id ) == SI_Invoice::POST_TYPE ) {
-				$url = get_permalink( $invoice_id );
-			} elseif ( get_post_type( $estimate_id ) == SI_Estimate::POST_TYPE ) {
-				$url = get_permalink( $estimate_id );
+		if ( $redirect && $doc_id ) {
+			$url = wp_get_referer();
+			if ( get_post_type( $doc_id ) == SI_Invoice::POST_TYPE ) {
+				$url = get_permalink( $doc_id );
+			} elseif ( get_post_type( $doc_id ) == SI_Estimate::POST_TYPE ) {
+				$url = get_permalink( $doc_id );
 			}
+			//Reloads page upon submission.
+			$data['actions']['redirect'] = $url;
 		}
-
-		//Reloads page upon submission.
-		$data['actions']['redirect'] = $url;
 
 		return $data;
 	}
@@ -243,7 +232,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 			'subject' => sprintf( apply_filters( 'si_form_submission_title_format', '%1$s (%2$s)', $submission ), $submission['subject'], $submission['client_name'] ),
 			'fields' => $submission,
 			'form' => $entry,
-			'history_link' => $submission['edit_url'],
+			'history_link' => sprintf( '<a href="%s">#%s</a>', $submission['edit_url'], $entry['id'] ),
 			);
 		/**
 		 * Creates the invoice from the arguments
@@ -288,7 +277,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		$estimate_args = array(
 			'subject' => sprintf( apply_filters( 'si_form_submission_title_format', '%1$s (%2$s)', $submission ), $submission['subject'], $submission['client_name'] ),
 			'fields' => $submission,
-			'form' => $form,
+			'form' => $submission,
 			'history_link' => $submission['edit_url'],
 		);
 		/**

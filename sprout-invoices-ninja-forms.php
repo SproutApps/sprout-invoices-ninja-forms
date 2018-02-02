@@ -107,11 +107,14 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 		 * @return array $actions
 		 */
 		public function register_fields( $actions ) {
-			if ( ! class_exists( 'NF_Sprout_Invoices_Fields_LineItems' ) ) {
+			// currently doesn't work
+			return $actions;
+
+			if ( ! class_exists( 'NF_Fields_SIListCheckbox' ) ) {
 				$classes_dir = realpath( plugin_dir_path( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR;
-				require_once $classes_dir . 'Fields/LineItems.php';
+				require_once $classes_dir . 'Fields/SIListCheckbox.php';
 			}
-			$actions['sprout-invoices-line-items'] = new NF_Sprout_Invoices_Fields_LineItems();
+			$actions['silistcheckbox'] = new NF_Fields_SIListCheckbox();
 			return $actions;
 		}
 

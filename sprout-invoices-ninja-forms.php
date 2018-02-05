@@ -1,15 +1,14 @@
 <?php if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /*
- * Plugin Name: Ninja Forms - Sprout Invoices
- * Plugin URI: https://ninjaforms.com/user-managemnet
- * Description: Register and manage users on your WordPress website with Ninja Forms.
- * Version: 1.0
- * Author: WP Ninjas
- * Author URI: https://ninjaforms.com
- * Text Domain: ninja-forms-sprout-invoices
- *
- * Copyright 2016 WP Ninjas.
+ * Plugin Name: Sprout Invoices + Ninja Forms
+ * Plugin URI: https://sproutapps.co/sprout-invoices/integrations/
+ * Description: Allows for a form submitted by Ninja Forms to create all necessary records to send your client an invoice or estimate.
+ * Author: Sprout Apps
+ * Version: 1.0.1
+ * Author URI: https://sproutapps.co
+ * Text Domain: sprout-invoices
+ * Domain Path: languages
  */
 
 if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) || get_option( 'ninja_forms_load_deprecated', false ) ) {
@@ -21,7 +20,7 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 	 */
 	final class NF_SproutInvoices
 	{
-		const VERSION = '3.0.5';
+		const VERSION = '1.0.1';
 		const SLUG    = 'sprout-invoices';
 		const NAME    = 'Sprout Invoices';
 		const AUTHOR  = 'WP Ninjas';

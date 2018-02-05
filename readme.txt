@@ -4,11 +4,11 @@ Donate link: https://sproutapps.co/
 Tags: invoice, invoicing, billing, estimates, ninja forms, billings, paypal, online payment
 Requires at least: 4.8
 Tested up to: 4.9
-Stable tag: 1.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Dynamic invoicing (and estimates/quotes) from Gravity Form submissions.
+Dynamic invoicing (and estimates/quotes) from Ninja Form submissions.
 
 == Description ==
 
@@ -26,7 +26,7 @@ https://www.youtube.com/watch?v=-Q3uxmLwlQs
 
 1. Upload plugin folder to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Create a Gravity Form and select the "Sprout Invoices" settings.
+1. Create a Ninja Form and select the "Sprout Invoices" settings.
 
 == Frequently Asked Questions ==
 
@@ -35,17 +35,13 @@ https://www.youtube.com/watch?v=-Q3uxmLwlQs
 
 == Screenshots ==
 
-1. Settings overview
-2. Settings view
-3. Form submission with redirect to newly created invoice
+1. Form submission with redirect to newly created estimate
+2. Complete settings view
+3. Settings overview
 
 == Changelog ==
 
 = 1.0.1 =
-
-* Minor bug fixes for user name creation
-
-= 1.0 =
 
 * Initial Release
 

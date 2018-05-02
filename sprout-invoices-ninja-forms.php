@@ -5,7 +5,7 @@
  * Plugin URI: https://sproutapps.co/sprout-invoices/integrations/
  * Description: Allows for a form submitted by Ninja Forms to create all necessary records to send your client an invoice or estimate.
  * Author: Sprout Apps
- * Version: 1.0.1
+ * Version: 1.0.3
  * Author URI: https://sproutapps.co
  * Text Domain: sprout-invoices
  * Domain Path: languages
@@ -20,7 +20,7 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 	 */
 	final class NF_SproutInvoices
 	{
-		const VERSION = '1.0.1';
+		const VERSION = '1.0.2';
 		const SLUG    = 'sprout-invoices';
 		const NAME    = 'Sprout Invoices';
 		const AUTHOR  = 'WP Ninjas';
@@ -91,7 +91,7 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 
 			add_action( 'ninja_forms_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
-			add_filter( 'ninja_forms_new_form_templates', array( $this, 'register_templates' ) );
+			//add_filter( 'ninja_forms_new_form_templates', array( $this, 'register_templates' ) );
 		}
 
 		public function enqueue_scripts() {
@@ -204,8 +204,8 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 		 */
 		public function register_templates( $templates ) {
 
-			$templates['create-invoice'] = array(
-				'id'            => 'create-invoice',
+			$templates['formtemplate-createinvoice'] = array(
+				'id'            => 'formtemplate-createinvoice',
 				'title'         => __( 'Create a Sprout Invoice', 'sprout-invoices' ),
 				'template-desc' => __( 'Create an invoice (and client records) for Sprout Invoices.', 'sprout-invoices' ),
 			);

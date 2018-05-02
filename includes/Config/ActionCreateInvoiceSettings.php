@@ -221,6 +221,7 @@ return apply_filters( 'ninja_forms_create_invoice_settings', array(
 		'group'         => 'primary',
 		'field_types'   => array(
 			'listmultiselect',
+			'listselect',
 			'listcheckbox',
 			'listradio',
 		),

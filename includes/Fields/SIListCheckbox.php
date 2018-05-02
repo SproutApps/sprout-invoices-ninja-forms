@@ -34,7 +34,10 @@ class NF_Fields_SIListCheckbox extends NF_Abstracts_List
 
 		$list = '';
 
-		$items_and_products = Predefined_Items::get_items_and_products();
+		$items_and_products = array();
+		if ( method_exists( 'Predefined_Items', 'get_items_and_products' ) ) {
+			$items_and_products = Predefined_Items::get_items_and_products();
+		}
 		$item_groups = apply_filters( 'si_predefined_items_for_submission', $items_and_products );
 		foreach ( $item_groups as $type => $items ) {
 

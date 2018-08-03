@@ -5,7 +5,7 @@
  * Plugin URI: https://sproutapps.co/sprout-invoices/integrations/
  * Description: Allows for a form submitted by Ninja Forms to create all necessary records to send your client an invoice or estimate.
  * Author: Sprout Apps
- * Version: 1.0.4
+ * Version: 1.1
  * Author URI: https://sproutapps.co
  * Text Domain: sprout-invoices
  * Domain Path: languages
@@ -82,7 +82,7 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 		 */
 		public function __construct() {
 
-			add_filter( 'ninja_forms_register_fields', array( $this, 'register_fields' ) );
+			// add_filter( 'ninja_forms_register_fields', array( $this, 'register_fields' ) );
 
 			/*
              * Register actions
@@ -106,9 +106,6 @@ if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3', '<' ) |
 		 * @return array $actions
 		 */
 		public function register_fields( $actions ) {
-			// currently doesn't work
-			return $actions;
-
 			if ( ! class_exists( 'NF_Fields_SIListCheckbox' ) ) {
 				$classes_dir = realpath( plugin_dir_path( __FILE__ ) ) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR;
 				require_once $classes_dir . 'Fields/SIListCheckbox.php';

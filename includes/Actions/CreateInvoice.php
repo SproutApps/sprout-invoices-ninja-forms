@@ -126,26 +126,66 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 	 * @return mixed
 	 */
 	public function process( $action_settings, $form_id, $data ) {
-
 		do_action( 'si_log', __CLASS__ . '::' . __FUNCTION__ . ' - action_settings', $action_settings, false );
 
-		//Get the login action settings for the current form.
-		$action = Ninja_Forms()->form( $form_id )->get_action( $action_settings['id'] );
-		//Get the username and password settings.
-		$setting_key = NF_SproutInvoices()->strip_merge_tags( $action->get_settings( 'address', 'line_items' ) );
-		//Get the fields for the current form.
-		$fields = Ninja_Forms()->form( $form_id )->get_fields();
-		//Gets a key/value pair in the form of action_setting => field_id
-		$field_id = NF_SproutInvoices()->get_field_id( $fields, $setting_key );
+		$line_items = array();
+
+		$product_type  = $action_settings['product_type'];
+
+		$line_item_selections = ( $action_settings['line_items'] ) ? explode( ',', $action_settings['line_items'] ) : false ;
+
+		// I hate how Ninja Form makes me do this, especially because I know there's a "proper way" that's totally not documented
+		foreach ( $data['fields'] as $field_key => $field ) {
+
+			if ( isset( $field['options'] ) ) {
+				foreach ( $field['options'] as $opt_key => $opt ) {
+					if ( isset( $opt['value'] ) && in_array( $opt['value'], $line_item_selections ) ) {
+						unset( $line_item_selections[ $opt['value'] ] );
+						$line_items[] = array(
+							'type' => $product_type,
+							'desc' => $opt['label'],
+							'rate' => $opt['calc'],
+							'total' => $opt['calc'],
+							'qty' => 1,
+							'tax' => apply_filters( 'si_form_submission_line_item_default_tax', '' ),
+						);
+					}
+				}
+			}
+		}
+
+		foreach ( $data['fields_by_key'] as $fld_key => $fld ) {
+			if ( 'product' === $fld['type'] ) {
+				$line_items[] = array(
+						'type' => $product_type,
+						'desc' => $fld['label'],
+						'rate' => $fld['product_price'],
+						'total' => $fld['value'] * $fld['product_price'],
+						'qty' => $fld['value'],
+						'tax' => apply_filters( 'si_form_submission_line_item_default_tax', '' ),
+					);
+			}
+		}
+
+		if ( isset( $action_settings['address'] ) ) {
+			$full_address = array(
+				'street' => isset( $data['fields_by_key']['address']['value'] ) ? $data['fields_by_key']['address']['value'] : '',
+				'city' => isset( $data['fields_by_key']['city']['value'] ) ? $data['fields_by_key']['city']['value'] : '',
+				'zone' => isset( $data['fields_by_key']['liststate']['value'] ) ? $data['fields_by_key']['liststate']['value'] : '',
+				'postal_code' => isset( $data['fields_by_key']['zip']['value'] ) ? $data['fields_by_key']['zip']['value'] : '',
+				'country' => '',
+			);
+		}
 
 		$generate  = $action_settings['si_generation'];
-		$product_type  = $action_settings['product_type'];
 		$redirect = ( isset( $action_settings['redirect'] ) && $action_settings['redirect'] ) ? true : false ;
 		$create_user_and_client = ( isset( $action_settings['create_user_and_client'] ) && $action_settings['create_user_and_client'] ) ? true : false ;
 
 		//Setting up array to send user info to WordPress
 		$submission = array(
 			'subject'    	=> isset( $action_settings['subject'] ) ? $action_settings['subject'] : '',
+			'line_items'    => $line_items,
+			'full_address'  => $full_address,
 			'client_name'   => isset( $action_settings['client_name'] ) ? $action_settings['client_name'] : '',
 			'email'    		=> isset( $action_settings['email'] ) ? $action_settings['email'] : '',
 			'first_name'    => isset( $action_settings['first_name'] ) ? $action_settings['first_name'] : '',
@@ -156,28 +196,6 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 			'vat'     		=> isset( $action_settings['vat'] ) ? $action_settings['vat'] : '',
 			'edit_url' 		=> admin_url( sprintf( 'wp-admin/edit.php?post_status=all&post_type=nf_sub&form_id=%s&filter_action=Filter&paged=1', $form_id ) ),
 		);
-
-		if ( isset( $action_settings['address'] ) ) {
-			$submission['full_address'] = array();
-		}
-
-		$data_line_items = $data['fields'][ $field_id['line_items'] ];
-		if ( ! empty( $data_line_items['value'] ) ) {
-			$line_items = array();
-			foreach ( $data_line_items['options'] as $key => $option ) {
-				if ( in_array( $option['value'], $data_line_items['value'] ) ) {
-					$line_items[] = array(
-						'type' => $product_type,
-						'desc' => $option['label'],
-						'rate' => $option['calc'],
-						'total' => $option['calc'],
-						'qty' => 1,
-						'tax' => apply_filters( 'si_form_submission_line_item_default_tax', 0.00 ),
-					);
-				}
-			}
-		}
-		$submission['line_items'] = $line_items;
 
 		$doc_id = 0;
 		switch ( $generate ) {

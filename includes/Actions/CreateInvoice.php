@@ -257,7 +257,6 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		 */
 		$invoice_id = SI_Invoice::create_invoice( $invoice_args );
 		$invoice = SI_Invoice::get_instance( $invoice_id );
-		do_action( 'si_invoice_submitted_from_adv_form', $invoice, $invoice_args );
 		$invoice->set_line_items( $submission['line_items'] );
 
 		// notes
@@ -285,6 +284,8 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 			sprintf( __( 'Invoice Submitted: Form %s.', 'sprout-invoices' ), $history_link ),
 			0,
 		false );
+
+		do_action( 'si_invoice_submitted_from_adv_form', $invoice, $invoice_args, $submission, $entry );
 
 		return $invoice_id;
 

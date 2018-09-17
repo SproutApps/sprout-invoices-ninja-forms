@@ -229,6 +229,8 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 
 		// posible redirection
 		if ( $redirect && $doc_id ) {
+			$doc = si_get_doc_object( $doc_id );
+			$doc->set_pending();
 			$url = wp_get_referer();
 			if ( get_post_type( $doc_id ) == SI_Invoice::POST_TYPE ) {
 				$url = get_permalink( $doc_id );
@@ -258,6 +260,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		$invoice_id = SI_Invoice::create_invoice( $invoice_args );
 		$invoice = SI_Invoice::get_instance( $invoice_id );
 		$invoice->set_line_items( $submission['line_items'] );
+		$invoice->set_calculated_total();
 
 		// notes
 		if ( isset( $submission['notes'] ) ) {

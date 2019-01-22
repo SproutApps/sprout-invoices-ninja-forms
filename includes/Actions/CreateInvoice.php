@@ -83,14 +83,16 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 
 		$settings = NF_SproutInvoices::config( 'ActionCreateInvoiceSettings' );
 
-		$li_types = SI_Line_Items::line_item_types();
-		$line_item_types = array();
-		foreach ( $li_types as $value => $label ) {
-			$settings['product_type']['options'][] = array(
-				'label' => $label,
-				'name' => $label,
-				'value' => $value,
-			);
+		if ( class_exists( 'SI_Line_Items' ) ) {
+			$li_types = SI_Line_Items::line_item_types();
+			$line_item_types = array();
+			foreach ( $li_types as $value => $label ) {
+				$settings['product_type']['options'][] = array(
+					'label' => $label,
+					'name' => $label,
+					'value' => $value,
+				);
+			}
 		}
 
 		$this->_settings = array_merge( $this->_settings, $settings );
@@ -254,6 +256,9 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 			'form' => $entry,
 			'history_link' => sprintf( '<a href="%s">#%s</a>', $submission['edit_url'], $entry['id'] ),
 			);
+
+		do_action( 'si_doc_generation_start' );
+
 		/**
 		 * Creates the invoice from the arguments
 		 */
@@ -302,6 +307,9 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 			'form' => $submission,
 			'history_link' => $submission['edit_url'],
 		);
+
+		do_action( 'si_doc_generation_start' );
+
 		/**
 		 * Creates the estimate from the arguments
 		 */

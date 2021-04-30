@@ -230,6 +230,23 @@ return apply_filters( 'ninja_forms_create_invoice_settings', array(
 
 	/*
     |--------------------------------------------------------------------------
+    | Discount Items
+    |--------------------------------------------------------------------------
+    */
+
+	'discount' => array(
+		'name'          => 'discount',
+		'type'          => 'field-select',
+		'label'         => __( 'Discount Percentage', 'sprout-invoices' ),
+		'width'         => 'full',
+		'group'         => 'primary',
+		'field_types'   => array(
+			'hidden'
+		),
+	),
+
+	/*
+    |--------------------------------------------------------------------------
     | Product Type
     |--------------------------------------------------------------------------
     */

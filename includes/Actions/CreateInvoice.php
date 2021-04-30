@@ -136,6 +136,8 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 
 		$line_item_selections = ( $action_settings['line_items'] ) ? explode( ',', $action_settings['line_items'] ) : false ;
 
+		$discount = $action_settings['discount'];
+
 		// I hate how Ninja Form makes me do this, especially because I know there's a "proper way" that's totally not documented
 		foreach ( $data['fields'] as $field_key => $field ) {
 
@@ -149,7 +151,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 							'rate' => $opt['calc'],
 							'total' => $opt['calc'],
 							'qty' => 1,
-							'tax' => apply_filters( 'si_form_submission_line_item_default_tax', '' ),
+							'tax' => isset( $discount ) ? $discount : apply_filters( 'si_form_submission_line_item_default_tax', '' ),
 						);
 					}
 				}
@@ -164,7 +166,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 						'rate' => $fld['product_price'],
 						'total' => $fld['value'] * $fld['product_price'],
 						'qty' => $fld['value'],
-						'tax' => apply_filters( 'si_form_submission_line_item_default_tax', '' ),
+						'tax' => isset( $discount ) ? $discount : apply_filters( 'si_form_submission_line_item_default_tax', '' ),
 					);
 			}
 		}
@@ -196,6 +198,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 			'duedate'	    => isset( $action_settings['duedate'] ) ? strtotime( $action_settings['duedate'] ) : '',
 			'number'     	=> isset( $action_settings['number'] ) ? $action_settings['number'] : '',
 			'vat'     		=> isset( $action_settings['vat'] ) ? $action_settings['vat'] : '',
+			'discount'     	=> isset( $action_settings['discount'] ) ? $action_settings['discount'] : '',
 			'edit_url' 		=> admin_url( sprintf( 'wp-admin/edit.php?post_status=all&post_type=nf_sub&form_id=%s&filter_action=Filter&paged=1', $form_id ) ),
 		);
 
@@ -279,6 +282,7 @@ final class NF_SproutInvoices_Actions_CreateInvoice extends NF_Abstracts_Action
 		if ( isset( $submission['duedate'] ) ) {
 			$invoice->set_due_date( $submission['duedate'] );
 		}
+		
 
 		// Finally associate the doc with the form submission
 		add_post_meta( $invoice_id, 'gf_form_id', $entry['id'] );
